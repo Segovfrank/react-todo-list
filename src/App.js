@@ -17,7 +17,6 @@ function useAsyncHook() {
 
     async function getTasks(){
       try{
-        setLoading("true");
       let body = {
         method: 'GET',
         headers: {
@@ -35,10 +34,19 @@ function useAsyncHook() {
           }
         })
 
-      setResult(tasks);
-      setLoading("false");
+        if(tasks === null){
+          setLoading("true");
+        }else{
+          setLoading("true");
+          setResult(tasks);
+
+        }
+
       }catch(error){
-        setLoading("null");
+        setLoading("false");
+        getTasks();
+
+        //setLoading("null");
       }
     }
 
@@ -86,10 +94,6 @@ function App() {
           
         }
       })
-
-
-
-    
   }
 
   const markAsDone = (task, pos) => {
@@ -147,10 +151,10 @@ function App() {
 
       {loading === "false" ? (
         <div>
-            <h1>Loading tasks...</h1>
+            <h1>Waiting for server...</h1>
             <CircularProgress />
         </div>
-        ) : loading === "null" ? (
+        ) : (loading === "null" || tasks === null) ? (
           <div>
             <h1>Tasks not found</h1>
             <Create addTodo={addTodo}></Create>
