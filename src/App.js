@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import './App.css';
 import Create from './components/Create';
 import Container from '@material-ui/core/Container';
@@ -9,67 +9,55 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 const appConfig = require('./configs/app');
 const apiRoot = `http://localhost:${appConfig.expressPort}/`;
 
-function useAsyncHook() {
-  const [result, setResult] = useState([]);
-  const [loading, setLoading] = useState("false");
-
-  React.useEffect(() => {
-
-    async function getTasks(){
-      try{
-      let body = {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        }
-      };
-      const tasks = await fetch(apiRoot + "tasks", body)
-        .then(response => {
-          if(response.ok) {
-            return response.json();
-          } else {
-            console.log(response);
-            return null;
-          }
-        })
-
-        if(tasks === null){
-          setLoading("true");
-        }else{
-          setLoading("true");
-          setResult(tasks);
-
-        }
-
-      }catch(error){
-        setLoading("false");
-        getTasks();
-
-        //setLoading("null");
-      }
-    }
-
-    getTasks();
-    
-
-  });
-
-  return [result, loading];
-}
-
-
-
 
 function App() {
-  var [tasks, loading] = useAsyncHook();
-  const [todos, setTodos] = useState([
+
+  const [loading, setLoading] = useState("false");
+  let [tasks, setTodos] = useState([
     { description: 'Create main folder', status: 'done' }, 
     { description: 'Move to main folder', status: 'pending' }, 
     { description: 'Start npm in the folder', status: 'pending' }
   ]);
- 
+  
 
+  const getTasks = async () =>{
+    try{
+    let body = {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      }
+    };
+    const tasks = await fetch(apiRoot + "tasks", body)
+      .then(response => {
+        if(response.ok) {
+          return response.json();
+        } else {
+          console.log(response);
+          return null;
+        }
+      })
+
+      if(tasks === null){
+        setLoading("true");
+      }else{
+        setLoading("true");
+        setTodos(tasks);
+
+      }
+
+    }catch(error){
+      setLoading("false");
+      getTasks();
+
+      //setLoading("null");
+    }
+  }
+
+  useEffect(() => {
+    getTasks();
+  }, []);
 
   const addTodo = (description) => {
 
@@ -88,8 +76,8 @@ function App() {
               //Clonar valores que ya teniamos
           let cTodos = Object.assign([], tasks);
           cTodos.push({description: description, status: "pending"})
-         
           setTodos(cTodos);
+          getTasks();
         } else {
           
         }
@@ -117,8 +105,6 @@ function App() {
           console.log(response);
         }
       })
-
-
   }
 
 
